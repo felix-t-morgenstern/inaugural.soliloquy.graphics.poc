@@ -15,6 +15,7 @@ public class Shader {
 
         _vertexShader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(_vertexShader, readFile(filename + ".vertex"));
+        glCompileShader(_vertexShader);
         if (glGetShaderi(_vertexShader, GL_COMPILE_STATUS) != 1) {
             throw new IllegalArgumentException(glGetShaderInfoLog(_vertexShader));
         }

@@ -96,19 +96,35 @@ public class HelloWorld {
 
         // Texture must be created below createCapabilities
 
-        Texture texture = new Texture("./res/tile-png-2.png");
+        float[] vertices = new float[] {
+                -0.5f, 0.5f, 0, //TOP LEFT 0
+                0.5f, 0.5f, 0, // TOP RIGHT 1
+                0.5f, -0.5f, 0, // BOTTOM RIGHT 2
+                -0.5f, -0.5f, 0, // BOTTOM LEFT 3
+
+        };
+
+        float[] textureCoords = new float[] {
+                0, 0,
+                1, 0,
+                1, 1,
+                0, 1
+        };
+
+        int[] indices = new int[] {
+                0, 1, 2,
+                2, 3, 0
+        };
+
+        Model model = new Model(vertices, textureCoords, indices);
+
+        Shader shader = new Shader("shader");
+
+        //Texture texture = new Texture("./res/tile-png-2.png");
 
         int id = glGenTextures();
 
-        boolean red = true;
-        if (red) {
-            // Set the clear color
-            glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-        }
-        else {
-            // Set the clear color
-            glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
-        }
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         float x = 0;
 
@@ -121,7 +137,6 @@ public class HelloWorld {
             }
 
             if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GL_TRUE) {
-                red = !red;
                 System.out.println("clicked!");
             }
 
@@ -135,34 +150,29 @@ public class HelloWorld {
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 
-            texture.bind();
+            //texture.bind();
 
-            glBegin(GL_QUADS);
+            shader.bind();
 
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-            glTexCoord2d(0, 0);
-            glVertex2f(-0.5f, 0.5f);
+            model.render();
 
-            glTexCoord2d(0, 1);
-            glVertex2f(0.5f, 0.5f);
-
-            glTexCoord2d(1, 1);
-            glVertex2f(0.5f, -0.5f);
-
-            glTexCoord2d(1, 0);
-            glVertex2f(-0.5f, -0.5f);
-
-            glEnd();
-
-            if (red) {
-                // Set the clear color
-                glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-            }
-            else {
-                // Set the clear color
-                glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
-            }
+//            glBegin(GL_QUADS);
+//
+//            glTexCoord2d(0, 0);
+//            glVertex2f(0f, 0.5f);
+//
+//            glTexCoord2d(0, 1);
+//            glVertex2f(0.5f, 0.5f);
+//
+//            glTexCoord2d(1, 1);
+//            glVertex2f(0.5f, 0f);
+//
+//            glTexCoord2d(1, 0);
+//            glVertex2f(0f, 0f);
+//
+//            glEnd();
 
             glfwSwapBuffers(window); // swap the color buffers
         }
