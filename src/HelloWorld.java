@@ -105,10 +105,10 @@ public class HelloWorld {
         };
 
         float[] textureCoords = new float[] {
-                0, 0,
-                1, 0,
-                1, 1,
-                0, 1
+                0f, 0f,
+                1f, 0f,
+                1f, 1f,
+                0f, 1f
         };
 
         int[] indices = new int[] {
@@ -176,10 +176,6 @@ public class HelloWorld {
 
             glfwSwapBuffers(window); // swap the color buffers
         }
-    }
-
-    public static void main(String[] args) {
-        new HelloWorld().run();
     }
 
 }
