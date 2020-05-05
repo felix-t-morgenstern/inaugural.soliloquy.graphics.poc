@@ -1,3 +1,5 @@
+package prevversion;
+
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
@@ -5,7 +7,6 @@ import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
 
-import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
 import static org.lwjgl.opengl.GL11.*;
@@ -36,11 +37,11 @@ public class AnotherTest {
 //                2, 3, 0
 //        };
 //
-//        Model model = new Model(vertices, textureCoords, indices);
+//        prevversion.Model model = new prevversion.Model(vertices, textureCoords, indices);
 //
-//        Shader shader = new Shader("shader");
+//        prevversion.Shader shader = new prevversion.Shader("shader");
 //
-//        //Texture texture = new Texture("./res/tile-png-2.png");
+//        //prevversion.Texture texture = new prevversion.Texture("./res/tile-png-2.png");
 //
 //        int id = glGenTextures();
 //
@@ -166,7 +167,7 @@ public class AnotherTest {
 
         glEnable(GL_TEXTURE_2D);
 
-        // Texture must be created below createCapabilities
+        // prevversion.Texture must be created below createCapabilities
 
         float[] vertices = new float[] {
                 -0.5f, 0.5f, 0, //TOP LEFT 0

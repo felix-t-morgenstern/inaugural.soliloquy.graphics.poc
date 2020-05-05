@@ -1,3 +1,5 @@
+package prevversion;
+
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
@@ -94,7 +96,7 @@ public class HelloWorld {
 
         glEnable(GL_TEXTURE_2D);
 
-        // Texture must be created below createCapabilities
+        // prevversion.Texture must be created below createCapabilities
 
         float[] vertices = new float[] {
                 -0.5f, 0.5f, 0, //TOP LEFT 0
@@ -120,7 +122,7 @@ public class HelloWorld {
 
         Shader shader = new Shader("shader");
 
-        //Texture texture = new Texture("./res/tile-png-2.png");
+        //prevversion.Texture texture = new prevversion.Texture("./res/tile-png-2.png");
 
         int id = glGenTextures();
 

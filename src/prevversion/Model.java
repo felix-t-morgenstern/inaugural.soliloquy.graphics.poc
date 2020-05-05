@@ -1,3 +1,5 @@
+package prevversion;
+
 import org.lwjgl.BufferUtils;
 
 import java.nio.FloatBuffer;
