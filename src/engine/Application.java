@@ -16,12 +16,16 @@ public class Application {
 
     private static long Window;
 
+    private static Rectangle Dimensions;
+
     private static GLFWWindowSizeCallback WindowResizeCallback;
 
     public static long init() {
         if (!glfwInit()) {
             throw new RuntimeException("GLFW failed to initialize");
         }
+
+        Dimensions = new Rectangle(0, 0, Width, Height);
 
         Window = glfwCreateWindow(Width, Height, NAME, 0, 0);
         glfwShowWindow(Window);
@@ -39,8 +43,8 @@ public class Application {
     }
 
     public static void onWindowResize(long window, int width, int height) {
-        Width = width;
-        Height = height;
+        Dimensions.set(0, 0, Width = width, Height = height);
+
         glViewport(0, 0, Width, Height);
     }
 
@@ -50,6 +54,10 @@ public class Application {
 
     public static int height() {
         return Height;
+    }
+
+    public static Rectangle dimensions() {
+        return Dimensions;
     }
 
     public static long window() {

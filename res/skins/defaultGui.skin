@@ -1,19 +1,19 @@
 [
 	{
-		"image": "greenSheet.png",
+		"image": "darkGreySheet.png",
 		"name": "box",
 		"type": "stretchBox",
 		"left": 190,
 		"top": 95,
 		"right": 290,
 		"bottom": 194,
-		"paddingTop": 6,
+		"paddingTop": 8,
 		"paddingRight": 6,
-		"paddingBottom": 6,
+		"paddingBottom": 8,
 		"paddingLeft": 6
 	},
 	{
-		"image": "greenSheet.png",
+		"image": "darkGreySheet.png",
 		"name": "button",
 		"type": "stretchBox",
 		"left": 190,
@@ -25,17 +25,17 @@
 		"paddingBottom": 6,
 		"paddingLeft": 6
 	},
-	{
-		"image": "greenSheet.png",
-		"name": "buttonHover",
-		"type": "stretchBox",
-		"left": 0,
-		"top": 0,
-		"right": 189,
-		"bottom": 48,
-		"paddingTop": 6,
-		"paddingRight": 6,
-		"paddingBottom": 6,
-		"paddingLeft": 6
-	}
+    {
+        "image": "darkGreySheet.png",
+        "name": "buttonHover",
+        "type": "stretchBox",
+        "left": 0,
+        "top": 0,
+        "right": 189,
+        "bottom": 48,
+        "paddingTop": 6,
+        "paddingRight": 6,
+        "paddingBottom": 6,
+        "paddingLeft": 6
+    }
 ]

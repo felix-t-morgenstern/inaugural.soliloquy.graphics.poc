@@ -62,6 +62,12 @@ public class Texture {
         TEXTURES.put(filename, this);
     }
 
+    public Texture(int textureId, int width, int height) {
+        _id = textureId;
+        _width = width;
+        _height = height;
+    }
+
     public int id() {
         return _id;
     }
@@ -87,7 +93,7 @@ public class Texture {
         return TEXTURES.get(name);
     }
 
-    public static void cleanUp() {
+    public static void cleanUpAll() {
         TEXTURES.values().forEach(t -> glDeleteTextures(t.id()));
     }
 

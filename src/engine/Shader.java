@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL20.*;
@@ -26,6 +28,8 @@ public class Shader {
 
     private final int ATTRIB_LOCATION_VERTICES = 0;
     private final int ATTRIB_LOCATION_UV_COORDS = 1;
+
+    private final static List<Shader> SHADERS = new ArrayList<>();
 
     public Shader (String filename) {
         _program = glCreateProgram();

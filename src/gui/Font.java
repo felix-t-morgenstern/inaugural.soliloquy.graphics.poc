@@ -1,5 +1,6 @@
 package gui;
 
+import engine.Texture;
 import org.joml.Vector2f;
 
 import java.awt.*;
@@ -16,9 +17,9 @@ import static org.lwjgl.opengl.GL11.*;
 public class Font {
     private int _id;
     private BufferedImage _bufferedImage;
-    private Vector2f _imageSize;
     private java.awt.Font _font;
     private FontMetrics _fontMetrics;
+    private Texture _texture;
 
     private int _i;
 
@@ -38,7 +39,8 @@ public class Font {
     public Font(String filename, float size) {
         try {
             _font = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT,
-                    new File("./res/Font/" + filename + ".ttf"));
+                    new File("./res/fonts/" + filename + ".ttf"))
+                    .deriveFont(size);
         } catch (FontFormatException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -64,20 +66,20 @@ public class Font {
 
         _fontMetrics = graphics2D.getFontMetrics();
 
-        _imageSize = new Vector2f(IMAGE_SIZE_X, IMAGE_SIZE_Y);
-
         _bufferedImage = graphics2D.getDeviceConfiguration()
-                .createCompatibleImage((int)_imageSize.x(), (int)_imageSize.y(),
+                .createCompatibleImage(IMAGE_SIZE_X, IMAGE_SIZE_Y,
                         Transparency.TRANSLUCENT);
 
         _id = glGenTextures();
 
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, _id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (int)_imageSize.x(), (int)_imageSize.y(), 0,
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, IMAGE_SIZE_X, IMAGE_SIZE_Y, 0,
                 GL_RGBA, GL_UNSIGNED_BYTE, generateImage());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        _texture = new Texture(_id, IMAGE_SIZE_X, IMAGE_SIZE_Y);
     }
 
     private ByteBuffer generateImage() {
@@ -108,15 +110,15 @@ public class Font {
             // TODO: Consider customizing the padding as a constructor parameter
             float advance = charWidth + ADDITIONAL_CHARACTER_PADDING;
 
-            if (tempX + advance > _imageSize.x()) {
+            if (tempX + advance > IMAGE_SIZE_X) {
                 tempX = 0;
                 tempY++;
             }
 
-            _glyphs.put(c, new FontGlyph(tempX / _imageSize.x(),
-                                         (tempY * height) / _imageSize.y(),
-                                         charWidth / _imageSize.x(),
-                                         height / _imageSize.y(),
+            _glyphs.put(c, new FontGlyph(tempX / (float)IMAGE_SIZE_X,
+                                         (tempY * height) / (float)IMAGE_SIZE_Y,
+                                         charWidth / (float)IMAGE_SIZE_X,
+                                         height / (float)IMAGE_SIZE_Y,
                                          charWidth,
                                          height));
 
@@ -128,8 +130,8 @@ public class Font {
     }
 
     private ByteBuffer createBuffer() {
-        int width = (int)_imageSize.x();
-        int height = (int)_imageSize.y();
+        int width = IMAGE_SIZE_X;
+        int height = IMAGE_SIZE_Y;
         int[] pixels = new int[width * height];
 
         _bufferedImage.getRGB(0, 0, width, height, pixels, 0, width);
@@ -151,6 +153,10 @@ public class Font {
         return _id;
     }
 
+    public Texture texture() {
+        return _texture;
+    }
+
     public Map<Character,FontGlyph> glyphs() {
         return Collections.unmodifiableMap(_glyphs);
     }
@@ -158,5 +164,9 @@ public class Font {
     public int stringWidth(String s) {
         // TODO: Verify whether the math here is actually correct
         return _fontMetrics.stringWidth(s);
+    }
+
+    public int lineHeight() {
+        return _fontMetrics.getHeight();
     }
 }

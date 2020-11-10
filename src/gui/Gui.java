@@ -6,13 +6,15 @@ import math.Color;
 import math.Quaternion;
 
 import java.util.Map;
+import java.util.Stack;
+import java.util.function.Consumer;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Gui {
-    public static Color BACKGROUND_COLOR = Color.white();
-    public static Color TEXT_COLOR = Color.black();
+    public static Color BLEND_COLOR = Color.white();
+    public static Color TEXT_COLOR = Color.white();
 
     private static Mesh _mesh;
     private static Shader _shader;
@@ -26,6 +28,9 @@ public class Gui {
     private static int _boundTextureId = -1;
     private static Color _boundColor = Color.white();
 
+    // TODO: Consider optimization here
+    private static Stack<Rectangle> _drawingAreasStack = new Stack<>();
+
     private static Rectangle UV_COORDS = new Rectangle(0, 0, 1, 1);
 
     public static void init() {
@@ -35,14 +40,17 @@ public class Gui {
 
         _guiSkin = new GuiSkin("defaultGui");
 
-        _font = new Font(new java.awt.Font("Times New Roman", java.awt.Font.PLAIN, 16));
+        _font = new Font("Trajan Pro Regular", 16);
     }
 
     public static void prepare() {
+        _drawingAreasStack.clear();
+        _drawingAreasStack.add(Application.dimensions());
+
         glDisable(GL_DEPTH_TEST);
 
         _shader.bind();
-        _shader.setUniform("matColor", BACKGROUND_COLOR);
+        _shader.setUniform("matColor", BLEND_COLOR);
 
         _orthographic = Quaternion.orthographic(0, Application.width(),
                 Application.height(), 0, -1, 1);
@@ -62,10 +70,10 @@ public class Gui {
         if (buttonDimensions.contains(Mouse.position())) {
             Rectangle container = box(buttonDimensions, hoverStyle);
             if (container != null) {
-                label(text, container._x, container._y);
+                label(text, container.x, container.y);
             }
             else {
-                label(text, buttonDimensions._x, buttonDimensions._y);
+                label(text, buttonDimensions.x, buttonDimensions.y);
             }
 
             return Mouse.buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT);
@@ -74,10 +82,10 @@ public class Gui {
             // TODO: Eliminate redundancies here
             Rectangle container = box(buttonDimensions, normalStyle);
             if (container != null) {
-                label(text, container._x, container._y);
+                label(text, container.x, container.y);
             }
             else {
-                label(text, buttonDimensions._x, buttonDimensions._y);
+                label(text, buttonDimensions.x, buttonDimensions.y);
             }
 
             return Mouse.buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT);
@@ -99,36 +107,36 @@ public class Gui {
 
         Texture texture = style.texture();
 
-        float rightMinusRightPadding = boxDimensions._x + boxDimensions._width
+        float rightMinusRightPadding = boxDimensions.x + boxDimensions.width
                 - style.padding().right();
         float rightMinusRightPaddingUv = style.offsetUv().right() - style.paddingUv().right();
 
-        float leftPlusLeftPadding = boxDimensions._x + style.padding().left();
+        float leftPlusLeftPadding = boxDimensions.x + style.padding().left();
         float leftPlusLeftPaddingUv = style.offsetUv().left() + style.paddingUv().left();
 
-        float topPlusTopPadding = boxDimensions._y + style.padding().top();
+        float topPlusTopPadding = boxDimensions.y + style.padding().top();
         float topPlusTopPaddingUv = style.offsetUv().top() + style.paddingUv().top();
 
-        float bottomMinusBottomPadding = boxDimensions._y + boxDimensions._height
+        float bottomMinusBottomPadding = boxDimensions.y + boxDimensions.height
                 - style.padding().bottom();
         float bottomMinusBottomPaddingUv = style.offsetUv().bottom() - style.paddingUv().bottom();
 
-        float sidebarHeight = boxDimensions._height
+        float sidebarHeight = boxDimensions.height
                 - style.padding().top() - style.padding().bottom();
         float sidebarHeightUv = (style.offsetUv().bottom() - style.paddingUv().bottom())
                 - (style.offsetUv().top() + style.paddingUv().top());
 
-        float sidebarY = boxDimensions._y + style.padding().top();
+        float sidebarY = boxDimensions.y + style.padding().top();
         float sidebarYUv = style.offsetUv().top() + style.paddingUv().top();
 
-        float horizontalBarWidth = boxDimensions._width
+        float horizontalBarWidth = boxDimensions.width
                 - style.padding().left() - style.padding().right();
         float horizontalBarWidthUv = (style.offsetUv().right() - style.paddingUv().right())
                 - (style.offsetUv().left() + style.paddingUv().left());
 
         Rectangle topLeft = new Rectangle(
-                boxDimensions._x,
-                boxDimensions._y,
+                boxDimensions.x,
+                boxDimensions.y,
                 style.padding().left(),
                 style.padding().top());
         Rectangle topLeftUv = new Rectangle(
@@ -140,7 +148,7 @@ public class Gui {
 
         Rectangle topRight = new Rectangle(
                 rightMinusRightPadding,
-                boxDimensions._y,
+                boxDimensions.y,
                 style.padding().right(),
                 style.padding().top());
         Rectangle topRightUv = new Rectangle(
@@ -151,7 +159,7 @@ public class Gui {
         drawTextureWithTexCoords(texture, topRight, topRightUv);
 
         Rectangle bottomLeft = new Rectangle(
-                boxDimensions._x,
+                boxDimensions.x,
                 bottomMinusBottomPadding,
                 style.padding().left(),
                 style.padding().bottom());
@@ -175,7 +183,7 @@ public class Gui {
         drawTextureWithTexCoords(texture, bottomRight, bottomRightUv);
 
         Rectangle leftSidebar = new Rectangle(
-                boxDimensions._x,
+                boxDimensions.x,
                 sidebarY,
                 style.padding().left(),
                 sidebarHeight);
@@ -200,7 +208,7 @@ public class Gui {
 
         Rectangle topHorizontalBar = new Rectangle(
                 leftPlusLeftPadding,
-                boxDimensions._y,
+                boxDimensions.y,
                 horizontalBarWidth,
                 style.padding().top());
         Rectangle topHorizontalBarUv = new Rectangle(
@@ -237,28 +245,24 @@ public class Gui {
         return center;
     }
 
-    public static void label(String text, float x, float y) {
-        glBindTexture(GL_TEXTURE_2D, _font.id());
+    public static int label(String text, float x, float y) {
         Map<Character,FontGlyph> glyphs = _font.glyphs();
         _xTemp = x;
 
         _characters = text.toCharArray();
 
-        _shader.setUniform("matColor", TEXT_COLOR);
-        _boundColor = TEXT_COLOR;
-
         for(_iterator = 0; _iterator < _characters.length; _iterator++) {
             FontGlyph glyph = glyphs.get(_characters[_iterator]);
 
-            _shader.setUniform("screenPosition", _xTemp, y);
-            _shader.setUniform("offset", glyph.getX(), glyph.getY(), glyph.getWidth(),
-                    glyph.getHeight());
-            _shader.setUniform("pixelScale", glyph.getScaleX(), glyph.getScaleY());
-
-            _mesh.render();
+            drawTextureWithTexCoords(_font.texture(),
+                    new Rectangle(_xTemp, y, glyph.getScaleX(), glyph.getScaleY()),
+                    new Rectangle(glyph.getX(), glyph.getY(), glyph.getWidth(), glyph.getHeight()),
+                    TEXT_COLOR);
 
             _xTemp += glyph.getScaleX();
         }
+
+        return _font.lineHeight();
     }
 
     public static void drawTexture(Texture texture, Rectangle rectangle) {
@@ -267,25 +271,92 @@ public class Gui {
 
     public static void drawTextureWithTexCoords(Texture texture, Rectangle rectangle,
                                                 Rectangle uvRectangle) {
-        drawTextureWithTexCoords(texture, rectangle, uvRectangle, BACKGROUND_COLOR);
+        drawTextureWithTexCoords(texture, rectangle, uvRectangle, BLEND_COLOR);
     }
 
-    public static void drawTextureWithTexCoords(Texture texture, Rectangle rectangle,
+    public static void drawTextureWithTexCoords(Texture texture, Rectangle drawDimensions,
                                                 Rectangle uvRectangle, Color color) {
-        if (_boundTextureId != texture.id()) {
+        Rectangle currentDrawingArea = _drawingAreasStack.peek();
+
+        if (currentDrawingArea == null) {
+            return;
+        }
+
+        // TODO: Add Rectangle.addPosition(x,y) and use here; look for other uses
+        Rectangle intersectingArea = currentDrawingArea.getIntersection(new Rectangle(
+                drawDimensions.x + currentDrawingArea.x,
+                drawDimensions.y + currentDrawingArea.y,
+                drawDimensions.width, drawDimensions.height
+        ));
+
+        if (intersectingArea == null) {
+            return;
+        }
+
+        float xUv = uvRectangle.x + ((((intersectingArea.x - drawDimensions.x) - currentDrawingArea.x) / drawDimensions.width) * uvRectangle.width);
+        float yUv = uvRectangle.y + ((((intersectingArea.y - drawDimensions.y) - currentDrawingArea.y) / drawDimensions.height) * uvRectangle.height);
+        Rectangle intersectingAreaUv = new Rectangle(xUv, yUv,
+                (intersectingArea.width / drawDimensions.width) * uvRectangle.width,
+                (intersectingArea.height / drawDimensions.height) * uvRectangle.height);
+
+        if (texture.id() != _boundTextureId) {
             glBindTexture(GL_TEXTURE_2D, texture.id());
         }
 
-        _shader.setUniform("offset", uvRectangle._x, uvRectangle._y,
-                uvRectangle._width, uvRectangle._height);
-        _shader.setUniform("pixelScale", rectangle._width, rectangle._height);
-        _shader.setUniform("screenPosition", rectangle._x, rectangle._y);
+        _shader.setUniform("offset", intersectingAreaUv.x, intersectingAreaUv.y,
+                intersectingAreaUv.width, intersectingAreaUv.height);
+        _shader.setUniform("pixelScale", intersectingArea.width, intersectingArea.height);
+
+        // draw within the set drawing area
+        _shader.setUniform("screenPosition", intersectingArea.x, intersectingArea.y);
+
         if (!_boundColor.equals(color)) {
             _shader.setUniform("matColor", color);
             _boundColor = color;
         }
 
         _mesh.render();
+    }
+
+    public static void window(Rectangle dimensions, String title, Consumer<Integer> hook,
+                              String skin, String style) {
+        window(dimensions, title, hook, GuiSkin.getSkin(skin).getStyle(style));
+    }
+
+    public static void window(Rectangle dimensions, String title,
+                              Consumer<Integer> windowIdConsumer, GuiStyle style) {
+        if (style != null) {
+            Rectangle innerDimensions = box(dimensions, style);
+            // TODO: Ensure that when labels wrap, that label height comes back accordingly
+            int labelHeight = label(title, innerDimensions.x, innerDimensions.y);
+            beginArea(new Rectangle(innerDimensions.x, innerDimensions.y + labelHeight,
+                    innerDimensions.width, innerDimensions.height - labelHeight));
+        }
+        else {
+            label(title, dimensions.x, dimensions.y);
+            beginArea(dimensions);
+        }
+
+        // passes through window Id
+        windowIdConsumer.accept(0);
+
+        endArea();
+    }
+
+    public static void beginArea(Rectangle areaDimensions) {
+        Rectangle currentDrawingArea = _drawingAreasStack.peek();
+        _drawingAreasStack.add(currentDrawingArea.getIntersection(new Rectangle(
+                currentDrawingArea.x + areaDimensions.x,
+                currentDrawingArea.y + areaDimensions.y,
+                areaDimensions.width,
+                areaDimensions.height
+        )));
+    }
+
+    public static void endArea() {
+        if (_drawingAreasStack.size() > 1) {
+            _drawingAreasStack.pop();
+        }
     }
 
     public static void unbind() {

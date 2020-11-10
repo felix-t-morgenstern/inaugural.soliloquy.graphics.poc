@@ -97,8 +97,16 @@ public class Color {
         return new Color(0, 0, 1);
     }
 
+    public static Color lightGrey() {
+        return new Color(0.75f, 0.75f, 0.75f);
+    }
+
     public static Color grey() {
         return new Color(0.5f, 0.5f, 0.5f);
+    }
+
+    public static Color darkGrey() {
+        return new Color(0.25f, 0.25f, 0.25f);
     }
 
     public static Color wine() {

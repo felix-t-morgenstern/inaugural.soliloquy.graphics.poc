@@ -3,6 +3,8 @@ package engine;
 import org.lwjgl.BufferUtils;
 
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
@@ -15,6 +17,8 @@ public class Mesh {
 
     private float[] _vertices;
     private float[] _uvCoordinates;
+
+    private final static List<Mesh> MESHES = new ArrayList<>();
 
     private final int POSITIONS = 0;
     private final int TEXTURE_COORDS = 1;
@@ -38,6 +42,8 @@ public class Mesh {
         glBindBuffer(GL_ARRAY_BUFFER, _uvId);
         glBufferData(GL_ARRAY_BUFFER, createBuffer(_uvCoordinates), GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        MESHES.add(this);
     }
 
     private FloatBuffer createBuffer(float[] data) {
@@ -70,8 +76,12 @@ public class Mesh {
         glBindVertexArray(NO_VERTEX_ARRAY);
     }
 
-    public void cleanUp() {
+    private void cleanUp() {
         glDeleteVertexArrays(_vertexArrayObject);
         glDeleteBuffers(_verticesId);
+    }
+
+    public static void cleanUpAll() {
+        MESHES.forEach(Mesh::cleanUp);
     }
 }
