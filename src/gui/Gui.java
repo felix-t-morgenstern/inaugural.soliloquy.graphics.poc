@@ -4,10 +4,16 @@ import engine.*;
 import input.Mouse;
 import math.Color;
 import math.Quaternion;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
 
+import java.nio.FloatBuffer;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -47,7 +53,7 @@ public class Gui {
         _drawingAreasStack.clear();
         _drawingAreasStack.add(Application.dimensions());
 
-        glDisable(GL_DEPTH_TEST);
+        //glDisable(GL_DEPTH_TEST);
 
         _shader.bind();
         _shader.setUniform("matColor", BLEND_COLOR);
@@ -56,6 +62,29 @@ public class Gui {
                 Application.height(), 0, -1, 1);
         _shader.setUniform("projection", _orthographic);
         _mesh.bind();
+    }
+
+    public static void drawRectangle(Rectangle rectangle) {
+        glBegin(GL_QUADS);
+
+        glVertex2f(rectangle.x, rectangle.y);
+        glVertex2f(rectangle.x + rectangle.width, rectangle.y);
+        glVertex2f(rectangle.x + rectangle.width, rectangle.y + rectangle.height);
+        glVertex2f(rectangle.x, rectangle.y + rectangle.height);
+
+        glEnd();
+    }
+
+    public static void line(Color color, Vector3f origin, Vector3f destination) {
+        glColor4f(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+
+        glBegin(GL_TRIANGLES);
+
+        glVertex2f(origin.x, origin.y);
+        glVertex2f(destination.x, destination.y);
+        glVertex2f(origin.x, origin.y);
+
+        glEnd();
     }
 
     public static boolean button(String text, Rectangle buttonDimensions, String guiSkinName,
@@ -88,7 +117,7 @@ public class Gui {
                 label(text, buttonDimensions.x, buttonDimensions.y);
             }
 
-            return Mouse.buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT);
+            return false;
         }
     }
 
@@ -246,6 +275,10 @@ public class Gui {
     }
 
     public static int label(String text, float x, float y) {
+        return label(text, x, y, 0);
+    }
+
+    public static int label(String text, float x, float y, float z) {
         Map<Character,FontGlyph> glyphs = _font.glyphs();
         _xTemp = x;
 
@@ -257,6 +290,7 @@ public class Gui {
             drawTextureWithTexCoords(_font.texture(),
                     new Rectangle(_xTemp, y, glyph.getScaleX(), glyph.getScaleY()),
                     new Rectangle(glyph.getX(), glyph.getY(), glyph.getWidth(), glyph.getHeight()),
+                    z,
                     TEXT_COLOR);
 
             _xTemp += glyph.getScaleX();
@@ -266,16 +300,25 @@ public class Gui {
     }
 
     public static void drawTexture(Texture texture, Rectangle rectangle) {
-        drawTextureWithTexCoords(texture, rectangle, UV_COORDS);
+        drawTexture(texture, rectangle, 0f);
+    }
+
+    public static void drawTexture(Texture texture, Rectangle rectangle, float z) {
+        drawTextureWithTexCoords(texture, rectangle, z, UV_COORDS);
     }
 
     public static void drawTextureWithTexCoords(Texture texture, Rectangle rectangle,
                                                 Rectangle uvRectangle) {
-        drawTextureWithTexCoords(texture, rectangle, uvRectangle, BLEND_COLOR);
+        drawTextureWithTexCoords(texture, rectangle, uvRectangle, 0f, BLEND_COLOR);
+    }
+
+    public static void drawTextureWithTexCoords(Texture texture, Rectangle rectangle, float z,
+                                                Rectangle uvRectangle) {
+        drawTextureWithTexCoords(texture, rectangle, uvRectangle, z, BLEND_COLOR);
     }
 
     public static void drawTextureWithTexCoords(Texture texture, Rectangle drawDimensions,
-                                                Rectangle uvRectangle, Color color) {
+                                                Rectangle uvRectangle, float zIndex, Color color) {
         Rectangle currentDrawingArea = _drawingAreasStack.peek();
 
         if (currentDrawingArea == null) {
@@ -303,6 +346,7 @@ public class Gui {
             glBindTexture(GL_TEXTURE_2D, texture.id());
         }
 
+        _shader.setUniform("zIndex", zIndex);
         _shader.setUniform("offset", intersectingAreaUv.x, intersectingAreaUv.y,
                 intersectingAreaUv.width, intersectingAreaUv.height);
         _shader.setUniform("pixelScale", intersectingArea.width, intersectingArea.height);

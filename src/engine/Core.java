@@ -4,9 +4,13 @@ import gui.Gui;
 import gui.GuiSkin;
 import input.Mouse;
 import math.Color;
+import org.joml.Vector3f;
+
+import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL14.*;
 import static org.lwjgl.util.tinyfd.TinyFileDialogs.tinyfd_messageBox;
 
 public class Core {
@@ -29,7 +33,11 @@ public class Core {
         Gui.init();
 
         glEnable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
+        //glEnable(GL_ALPHA_TEST);
+        //glDepthFunc(GL_LESS);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
 
         while(!glfwWindowShouldClose(window)) {
             Mouse.reset();
@@ -57,6 +65,13 @@ public class Core {
 
             Gui.label("How's it going", box.x, box.y);
 
+//            Vector3f lineOrigin = new Vector3f(0f, 0f, 0f);
+//            Vector3f lineDestination = new Vector3f(100f, 100f, 0f);
+//
+//            Gui.line(Color.blue(), lineOrigin, lineDestination);
+
+//            Gui.drawRectangle(new Rectangle(0, 0, 50, 100));
+
             Gui.unbind();
 
             glfwSwapBuffers(window);
@@ -74,7 +89,8 @@ public class Core {
     }
 
     public static void test2(int windowId) {
-        Gui.drawTexture(_texture, new Rectangle(150, 0, 100, 100));
+        Gui.drawTexture(_texture, new Rectangle(0, 0, 200, 200), -0.5f);
+        Gui.drawTexture(_texture, new Rectangle(32, 64, 200, 200), -0.25f);
         Gui.label("TextTextTextTextTextText", 150, 200);
     }
 }

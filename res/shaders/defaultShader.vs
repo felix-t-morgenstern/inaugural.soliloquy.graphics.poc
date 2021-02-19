@@ -6,6 +6,7 @@ in vec2 textureCoords;
 out vec4 color;
 out vec2 uvCoords;
 
+uniform float zIndex;
 uniform vec4 matColor;
 uniform mat4 projection;
 uniform vec4 offset;
@@ -16,5 +17,6 @@ void main()
 {
     color = matColor;
     gl_Position = projection * vec4((position * pixelScale) + screenPosition, 0, 1);
+    gl_Position.z = zIndex;
     uvCoords = (textureCoords * offset.zw) + offset.xy;
 }

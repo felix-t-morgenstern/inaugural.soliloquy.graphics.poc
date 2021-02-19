@@ -92,11 +92,22 @@ public class Shader {
         glUseProgram(NO_PROGRAM);
     }
 
+    // TODO: Consider caching uniform locations
     private void setUniform(String name, Consumer<Integer> action) {
         int location = glGetUniformLocation(_program, name);
         if (location != INVALID_LOCATION) {
             action.accept(location);
         }
+        else {
+            throw new RuntimeException("Shader.setUniform: Invalid location name (" + name + ")");
+        }
+    }
+
+    public void setUniform(String name, float f) {
+        setUniform(name, location -> {
+            glUniform1f(location, f);
+            System.out.println(glGetUniformf(_program, location));
+        });
     }
 
     public void setUniform(String name, float f1, float f2) {
